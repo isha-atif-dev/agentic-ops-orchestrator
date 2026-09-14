@@ -1,0 +1,12 @@
+# docker-compose.yml
+# Defines how to build and run the Agentic Ops Orchestrator container.
+# Keeping this in version control means anyone (or any server) can
+# spin up the exact same setup with one command: docker compose up.
+
+services:
+  app:
+    build: .
+    ports:
+      - "8001:8000"   # host:container — 8001 outside, 8000 inside (Project 1 already uses 8000)
+    env_file:
+      - .env
