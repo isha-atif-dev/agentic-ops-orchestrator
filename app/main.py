@@ -16,6 +16,7 @@ from app.models.schemas import SubmitRequestIn, SubmitRequestOut, DecisionIn, De
 from app.models.taxonomy import TAXONOMY, RequestType
 from app.tools.db import init_db
 from app.tools.request_log import log_new_request, resolve_request, get_pending_requests, get_stats
+from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager
@@ -27,6 +28,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Agentic Ops Orchestrator", lifespan=lifespan)
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # portfolio project, fine to allow all origins
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health_check():
