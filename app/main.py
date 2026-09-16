@@ -14,6 +14,8 @@ from app.agents.graph import graph
 from app.models.schemas import SubmitRequestIn, SubmitRequestOut, DecisionIn, DecisionOut
 from app.models.taxonomy import TAXONOMY, RequestType
 from app.tools.request_log import log_new_request, resolve_request, get_pending_requests, get_stats
+from contextlib import asynccontextmanager
+from app.tools.db import init_db
 
 app = FastAPI(title="Agentic Ops Orchestrator")
 
@@ -83,3 +85,14 @@ def pending_requests():
 def request_stats():
     """Returns today's counts, for the dashboard's stat cards."""
     return get_stats()
+
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Ensures the database schema exists every time the app starts."""
+    init_db()
+    yield
+
+
+app = FastAPI(title="Agentic Ops Orchestrator", lifespan=lifespan)
