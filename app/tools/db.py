@@ -2,9 +2,8 @@
 Sets up the mocked backend database for the Agentic Ops Orchestrator.
 
 Provides a SQLite database with customer records, support tickets,
-and an action log, used by the tool functions to simulate real
-backend operations (checking accounts, freezing accounts, logging
-actions, etc).
+an action log, and a requests log (every submitted request, used
+to power the ops dashboard's pending queue and stats).
 """
 
 import sqlite3
@@ -56,6 +55,22 @@ def init_db():
             action TEXT,
             details TEXT,
             timestamp TEXT
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS requests_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            thread_id TEXT,
+            customer_id TEXT,
+            message TEXT,
+            request_type TEXT,
+            risk_tier TEXT,
+            tool_args TEXT,
+            ai_recommendation TEXT,
+            status TEXT,
+            created_at TEXT,
+            resolved_at TEXT
         )
     """)
 

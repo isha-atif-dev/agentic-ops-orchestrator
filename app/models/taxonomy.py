@@ -49,33 +49,41 @@ TAXONOMY = {
     RequestType.ACCOUNT_STATUS_QUERY: {
         "risk_tier": RiskTier.AUTO,
         "tools": ["check_account"],
+        "ai_recommendation": "Provide account status (no approval required)",
     },
     RequestType.STATEMENT_REQUEST: {
         "risk_tier": RiskTier.AUTO,
         "tools": ["generate_statement"],
+        "ai_recommendation": "Generate and send statement (no approval required)",
     },
     RequestType.UPDATE_CONTACT_INFO: {
         "risk_tier": RiskTier.AUTO,
         "tools": ["update_contact_info"],
+        "ai_recommendation": "Update contact details (no approval required)",
     },
     RequestType.GENERAL_COMPLAINT: {
         "risk_tier": RiskTier.AUTO,
         "tools": ["create_ticket"],
+        "ai_recommendation": "Log complaint as a support ticket (no approval required)",
     },
     RequestType.SUBSCRIPTION_CANCELLATION: {
         "risk_tier": RiskTier.NEEDS_APPROVAL,
         "tools": ["cancel_subscription"],
+        "ai_recommendation": "Proceed with cancellation after identity verification",
     },
     RequestType.TRANSACTION_DISPUTE: {
         "risk_tier": RiskTier.NEEDS_APPROVAL,
         "tools": ["create_ticket", "flag_transaction"],
+        "ai_recommendation": "Flag transaction and open a dispute ticket",
     },
     RequestType.FRAUD_REPORT: {
         "risk_tier": RiskTier.URGENT_APPROVAL,
         "tools": ["escalate_to_fraud_team"],
+        "ai_recommendation": "Block card immediately and escalate to fraud team",
     },
     RequestType.IDENTITY_THEFT_REPORT: {
         "risk_tier": RiskTier.URGENT_APPROVAL,
         "tools": ["freeze_account", "escalate_to_fraud_team"],
+        "ai_recommendation": "Freeze account and escalate to fraud team immediately",
     },
 }
