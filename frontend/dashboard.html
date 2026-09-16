@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Meridian Operations</title>
+<!--
+  Ops dashboard for reviewing and approving/rejecting AI-routed
+  customer requests. Fetches live data from the FastAPI backend
+  (pending queue, stats) and calls the decision endpoint when a
+  reviewer approves or rejects a request.
+-->
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f4f7fb;
+    color: #1a1a2e;
+    display: flex;
+  }
+  nav {
+    width: 220px;
+    background: #0f1f3d;
+    color: white;
+    min-height: 100vh;
+    padding: 20px 0;
+    flex-shrink: 0;
+  }
+  nav .logo { font-weight: 700; font-size: 18px; padding: 0 20px 20px; }
+  nav a {
+    display: block;
+    color: #b8c2d9;
+    text-decoration: none;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  nav a.active { background: #1b2f57; color: white; border-left: 3px solid #3b82f6; }
+  main { flex: 1; padding: 30px 40px; }
+  .topbar { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #3b82f6; color: white; display: flex;
+    align-items: center; justify-content: center; font-size: 13px; font-weight: 600;
+  }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  .subtitle { color: #6b7080; margin-bottom: 24px; }
+  .stats { display: flex; gap: 16px; margin-bottom: 30px; }
+  .stat-card {
+    flex: 1; background: white; border-radius: 10px; padding: 16px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05); cursor: default;
+  }
+  .stat-card.active { border: 1.5px solid #3b82f6; }
+  .stat-number { font-size: 24px; font-weight: 700; }
+  .stat-label { font-size: 13px; color: #6b7080; margin-top: 4px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .section-header h2 { font-size: 17px; margin: 0; }
+  #requestList { display: flex; flex-direction: column; gap: 14px; }
+  .req-card {
+    background: white; border-radius: 10px; padding: 16px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05); border-left: 4px solid #ccc;
+  }
+  .req-card.high { border-left-color: #e02424; }
+  .req-card.medium { border-left-color: #f2a900; }
+  .req-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .risk-tag { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+  .risk-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .risk-dot.high { background: #e02424; }
+  .risk-dot.medium { background: #f2a900; }
+  .timestamp { font-size: 12px; color: #9ca0b0; }
+  .req-message { font-size: 15px; margin: 10px 0 8px; }
+  .pill {
+    display: inline-block; background: #eef1f8; color: #4a5170;
+    font-size: 12px; padding: 3px 10px; border-radius: 12px; margin-right: 6px;
+  }
+  .thread-id { font-size: 12px; color: #9ca0b0; }
+  .recommendation {
+    background: #f4f7fb; border-radius: 8px; padding: 10px 12px;
+    font-size: 13px; color: #4a5170; margin: 10px 0;
+  }
+  .recommendation strong { color: #1a1a2e; }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  button.reject, button.approve {
+    padding: 8px 18px; border-radius: 6px; font-size: 14px; cursor: pointer; border: none;
+  }
+  button.reject { background: white; border: 1px solid #e2e5ec; color: #1a1a2e; }
+  button.approve { background: #2563eb; color: white; }
+  button.approve:hover { background: #1e4fc4; }
+  #empty { text-align: center; color: #9ca0b0; padding: 40px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Meridian</div>
+  <a href="#" class="active">Review Queue</a>
+  <a href="#">Request History</a>
+  <a href="#">Analytics</a>
+  <a href="#">Settings</a>
+</nav>
+
+<main>
+  <div class="topbar">
+    <div class="avatar">SA</div>
+    <span style="font-size: 14px;">Sarah Ahmed<br><span style="color:#9ca0b0; font-size:12px;">Fraud Operations</span></span>
+  </div>
+
+  <h1>Meridian Operations</h1>
+  <p class="subtitle">Review and action AI-routed customer requests</p>
+
+  <div class="stats">
+    <div class="stat-card active">
+      <div class="stat-number" id="statPending">-</div>
+      <div class="stat-label">Pending Review</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="statApproved">-</div>
+      <div class="stat-label">Approved Today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="statRejected">-</div>
+      <div class="stat-label">Rejected Today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="statTotal">-</div>
+      <div class="stat-label">Total Requests</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <h2 id="pendingTitle">Pending Requests</h2>
+  </div>
+
+  <div id="requestList"></div>
+  <div id="empty" style="display:none;">No pending requests right now.</div>
+</main>
+
+<script>
+  const API_BASE = "http://16.61.183.194:8001";
+
+  function riskInfo(tier) {
+    if (tier === "urgent_approval") return { label: "High Risk", cls: "high" };
+    return { label: "Medium Risk", cls: "medium" };
+  }
+
+  function formatTime(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString() + ", " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  async function loadStats() {
+    const res = await fetch(`${API_BASE}/requests/stats`);
+    const data = await res.json();
+    document.getElementById("statPending").textContent = data.pending_review;
+    document.getElementById("statApproved").textContent = data.approved_today;
+    document.getElementById("statRejected").textContent = data.rejected_today;
+    document.getElementById("statTotal").textContent = data.total_requests;
+  }
+
+  async function loadPending() {
+    const res = await fetch(`${API_BASE}/requests/pending`);
+    const requests = await res.json();
+    const list = document.getElementById("requestList");
+    const empty = document.getElementById("empty");
+    list.innerHTML = "";
+
+    document.getElementById("pendingTitle").textContent = `Pending Requests (${requests.length})`;
+
+    if (requests.length === 0) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    requests.forEach(req => {
+      const risk = riskInfo(req.risk_tier);
+      const card = document.createElement("div");
+      card.className = `req-card ${risk.cls}`;
+      card.innerHTML = `
+        <div class="req-top">
+          <div class="risk-tag"><span class="risk-dot ${risk.cls}"></span>${risk.label}</div>
+          <div class="timestamp">${formatTime(req.created_at)}</div>
+        </div>
+        <div class="req-message">${req.message}</div>
+        <span class="pill">${req.request_type}</span>
+        <span class="thread-id">${req.thread_id}</span>
+        <div class="recommendation"><strong>AI Recommendation</strong><br>${req.ai_recommendation}</div>
+        <div class="actions">
+          <button class="reject">Reject</button>
+          <button class="approve">Approve</button>
+        </div>
+      `;
+      card.querySelector(".reject").onclick = () => decide(req.thread_id, false);
+      card.querySelector(".approve").onclick = () => decide(req.thread_id, true);
+      list.appendChild(card);
+    });
+  }
+
+  async function decide(threadId, approved) {
+    await fetch(`${API_BASE}/requests/${threadId}/decision`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ approved }),
+    });
+    loadPending();
+    loadStats();
+  }
+
+  loadStats();
+  loadPending();
+</script>
+
+</body>
+</html>
