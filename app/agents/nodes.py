@@ -10,6 +10,8 @@ Enum behaviour is used locally inside each node where needed.
 
 from langgraph.types import interrupt
 from app.agents.classifier import classify_request
+from app.agents.arg_extractor import extract_tool_args
+from app.agents.tool_schemas import TOOL_ARG_SCHEMAS
 from app.models.taxonomy import TAXONOMY, RequestType, RiskTier
 from app.agents.state import AgentState
 from app.tools import actions
@@ -29,6 +31,23 @@ def classify_node(state: AgentState) -> dict:
     }
 
 
+def extract_args_node(state: AgentState) -> dict:
+    """
+    Extracts any extra arguments each mapped tool needs, beyond
+    customer_id. Tools with no schema in TOOL_ARG_SCHEMAS need no
+    extra arguments, so they're skipped here.
+    """
+    request_type = RequestType(state["request_type"])
+    tool_names = TAXONOMY[request_type]["tools"]
+
+    tool_args = {}
+    for tool_name in tool_names:
+        if tool_name in TOOL_ARG_SCHEMAS:
+            tool_args[tool_name] = extract_tool_args(state["message"], tool_name)
+
+    return {"tool_args": tool_args}
+
+
 def approval_gate_node(state: AgentState) -> dict:
     """
     Decides whether this request needs a human to approve it before
@@ -44,6 +63,7 @@ def approval_gate_node(state: AgentState) -> dict:
         "message": state["message"],
         "request_type": state["request_type"],
         "risk_tier": state["risk_tier"],
+        "tool_args": state.get("tool_args", {}),
     })
 
     return {"approved": decision}
@@ -63,16 +83,17 @@ TOOL_REGISTRY = {
 
 def execute_tool_node(state: AgentState) -> dict:
     """
-    Runs the tool(s) mapped to this request's type in the taxonomy.
-    Converts the stored string back into a RequestType to look it
-    up, since TAXONOMY is keyed by the enum.
+    Runs the tool(s) mapped to this request's type, passing any
+    extracted arguments alongside customer_id.
     """
     request_type = RequestType(state["request_type"])
     tool_names = TAXONOMY[request_type]["tools"]
+    tool_args = state.get("tool_args", {})
     results = {}
 
     for tool_name in tool_names:
         tool_function = TOOL_REGISTRY[tool_name]
-        results[tool_name] = tool_function(state["customer_id"])
+        extra_args = tool_args.get(tool_name, {})
+        results[tool_name] = tool_function(state["customer_id"], **extra_args)
 
     return {"tool_result": results}

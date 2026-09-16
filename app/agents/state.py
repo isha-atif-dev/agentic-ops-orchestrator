@@ -24,3 +24,4 @@ class AgentState(TypedDict):
 
     # Filled in by the tool-execution node
     tool_result: Optional[dict]
+    tool_args: Optional[dict]
