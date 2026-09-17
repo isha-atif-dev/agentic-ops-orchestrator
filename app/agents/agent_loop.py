@@ -34,6 +34,12 @@ AGENT_SYSTEM_PROMPT = (
     "their permission, or any sign their account has been "
     "compromised, you must escalate to the fraud team, this takes "
     "priority over simply flagging a transaction. "
+    "If the customer reports signs of identity theft, including a "
+    "new account being fraudulently opened in their name elsewhere, "
+    "you must both escalate to the fraud team AND freeze their "
+    "existing account as a protective precaution, even though the "
+    "fraudulent account itself is separate, since their identity "
+    "being compromised puts their existing account at risk too. "
     "For a specific transaction the customer merely doesn't "
     "recognize or disputes, without suggesting their card was "
     "stolen or compromised, flag the transaction AND open a "
@@ -63,11 +69,9 @@ def run_agent_loop(customer_id: str, message: str) -> dict:
     """
     messages = [{"role": "user", "content": message}]
     tool_calls_made = {}
+    called_tools = set()
 
     for i in range(MAX_ITERATIONS):
-        # Force a tool call on the first turn only, so the agent can
-        # never simply respond with text and take no action at all.
-        # After that, let it decide naturally when it's actually done.
         tool_choice = {"type": "any"} if i == 0 else {"type": "auto"}
 
         response = client.messages.create(
@@ -89,9 +93,16 @@ def run_agent_loop(customer_id: str, message: str) -> dict:
             if block.type != "tool_use":
                 continue
 
-            tool_function = TOOL_REGISTRY[block.name]
-            result = tool_function(customer_id, **block.input)
-            tool_calls_made[block.name] = result
+            if block.name in called_tools:
+                # Already executed this tool for this request, don't repeat
+                # the real action (e.g. don't escalate to fraud twice),
+                # just tell the model it's already been done.
+                result = {"note": "already completed earlier in this request", **tool_calls_made[block.name]}
+            else:
+                tool_function = TOOL_REGISTRY[block.name]
+                result = tool_function(customer_id, **block.input)
+                tool_calls_made[block.name] = result
+                called_tools.add(block.name)
 
             tool_result_blocks.append({
                 "type": "tool_result",
