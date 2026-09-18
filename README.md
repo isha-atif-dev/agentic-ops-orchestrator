@@ -2,8 +2,6 @@
 
 An agentic system for Meridian Financial Services Ltd (a fictional bank) that reads real customer operations requests, written in plain English, and decides what action to take, executing low-risk actions automatically and pausing high-risk ones for human approval.
 
-This is the second project in a two-part AI Engineer portfolio. [Project 1, RAG Compliance Assistant](https://github.com/isha-atif-dev/rag-compliance-assistant), is a "knows things" system, it answers questions from documents. This project is the "does things" counterpart, it takes action based on a request, not just retrieves information.
-
 ## The problem it solves
 
 Meridian's customers send in requests like:
