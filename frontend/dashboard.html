@@ -125,6 +125,10 @@
   .status-pill.approved { background: #e6f4ea; color: #1b6b3a; }
   .status-pill.rejected { background: #fdeaea; color: #b91c1c; }
   .placeholder-box { background: white; border-radius: 10px; padding: 40px; text-align: center; color: #9ca0b0; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .stat-card.clickable:hover {
+  border: 1.5px solid #3b82f6;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
@@ -153,15 +157,15 @@
         <div class="stat-number" id="statPending">-</div>
         <div class="stat-label">Pending Review</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card clickable">
         <div class="stat-number" id="statApproved">-</div>
         <div class="stat-label">Approved Today</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card clickable">
         <div class="stat-number" id="statRejected">-</div>
         <div class="stat-label">Rejected Today</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card clickable">
         <div class="stat-number" id="statTotal">-</div>
         <div class="stat-label">Total Requests</div>
       </div>
@@ -189,15 +193,15 @@
   <!-- Analytics view -->
   <div id="analyticsView" style="display:none;">
     <div class="stats">
-      <div class="stat-card">
+      <div class="stat-card clickable">
         <div class="stat-number" id="analyticsTotal">-</div>
         <div class="stat-label">Total Resolved</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card clickable">
         <div class="stat-number" id="analyticsApprovalRate">-</div>
         <div class="stat-label">Approval Rate</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card clickable">
         <div class="stat-number" id="analyticsRejectionRate">-</div>
         <div class="stat-label">Rejection Rate</div>
       </div>
