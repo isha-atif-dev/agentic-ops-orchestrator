@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.tools.request_log import log_new_request, resolve_request, get_pending_requests, get_stats, get_request_history
 from fastapi.responses import FileResponse
 from pathlib import Path
+from fastapi.staticfiles import StaticFiles
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,6 +31,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Agentic Ops Orchestrator", lifespan=lifespan)
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
+app.mount("/assets", StaticFiles(directory=FRONTEND_DIR / "assets"), name="assets")
 
 app.add_middleware(
     CORSMiddleware,
