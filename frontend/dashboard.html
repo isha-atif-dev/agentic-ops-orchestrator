@@ -242,6 +242,13 @@
     a.onclick = () => switchView(a.dataset.view);
   });
 
+  document.getElementById("statApproved").closest(".stat-card").style.cursor = "pointer";
+  document.getElementById("statApproved").closest(".stat-card").onclick = () => switchView("history");
+  document.getElementById("statRejected").closest(".stat-card").style.cursor = "pointer";
+  document.getElementById("statRejected").closest(".stat-card").onclick = () => switchView("history");
+  document.getElementById("statTotal").closest(".stat-card").style.cursor = "pointer";
+  document.getElementById("statTotal").closest(".stat-card").onclick = () => switchView("history");
+
   function riskInfo(tier) {
     if (tier === "urgent_approval") return { label: "High Risk", cls: "high" };
     return { label: "Medium Risk", cls: "medium" };
