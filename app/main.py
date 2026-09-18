@@ -17,6 +17,7 @@ from app.models.taxonomy import TAXONOMY, RequestType
 from app.tools.db import init_db
 from app.tools.request_log import log_new_request, resolve_request, get_pending_requests, get_stats
 from fastapi.middleware.cors import CORSMiddleware
+from app.tools.request_log import log_new_request, resolve_request, get_pending_requests, get_stats, get_request_history
 
 
 @asynccontextmanager
@@ -101,3 +102,11 @@ def pending_requests():
 def request_stats():
     """Returns today's counts, for the dashboard's stat cards."""
     return get_stats()
+
+
+
+
+@app.get("/requests/history")
+def request_history():
+    """Returns every resolved request, for the Request History tab."""
+    return get_request_history()

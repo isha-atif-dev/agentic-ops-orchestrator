@@ -85,3 +85,29 @@ def get_stats():
         "rejected_today": rejected_today,
         "total_requests": total,
     }
+
+
+def get_request_history():
+    """Returns every resolved (approved or rejected) request, most recent first."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT thread_id, customer_id, message, request_type, risk_tier, status, created_at, resolved_at "
+        "FROM requests_log WHERE status != 'pending' ORDER BY resolved_at DESC"
+    )
+    rows = cursor.fetchall()
+    conn.close()
+
+    return [
+        {
+            "thread_id": r[0],
+            "customer_id": r[1],
+            "message": r[2],
+            "request_type": r[3],
+            "risk_tier": r[4],
+            "status": r[5],
+            "created_at": r[6],
+            "resolved_at": r[7],
+        }
+        for r in rows
+    ]

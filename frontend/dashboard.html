@@ -5,12 +5,11 @@
 <title>Meridian Operations</title>
 <!--
   Ops dashboard for reviewing and approving/rejecting AI-routed
-  customer requests. Fetches live data from the FastAPI backend
-  (pending queue, stats) and calls the decision endpoint when a
-  reviewer approves or rejects a request. On approval, replays the
-  real step-by-step trace returned by the backend (classify, human
-  decision, each tool call) as an animated node sequence, so the
-  reviewer sees exactly what the agent actually did, not a summary.
+  customer requests. Review Queue: live pending requests with
+  animated trace replay on approval. Request History: every
+  resolved request, from real logged data. Analytics: a simple
+  breakdown of request types and approval/rejection rates,
+  computed from that same real history data.
 -->
 <style>
   * { box-sizing: border-box; }
@@ -36,6 +35,7 @@
     text-decoration: none;
     padding: 12px 20px;
     font-size: 14px;
+    cursor: pointer;
   }
   nav a.active { background: #1b2f57; color: white; border-left: 3px solid #3b82f6; }
   main { flex: 1; padding: 30px 40px; }
@@ -117,16 +117,24 @@
   .trace-done {
     font-size: 13px; color: #1b6b3a; font-weight: 600; margin-top: 10px; display: none;
   }
+
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  th, td { text-align: left; padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #eef1f8; }
+  th { color: #6b7080; font-weight: 600; background: #f8fafc; }
+  .status-pill { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .status-pill.approved { background: #e6f4ea; color: #1b6b3a; }
+  .status-pill.rejected { background: #fdeaea; color: #b91c1c; }
+  .placeholder-box { background: white; border-radius: 10px; padding: 40px; text-align: center; color: #9ca0b0; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
 </style>
 </head>
 <body>
 
 <nav>
   <div class="logo">Meridian</div>
-  <a href="#" class="active">Review Queue</a>
-  <a href="#">Request History</a>
-  <a href="#">Analytics</a>
-  <a href="#">Settings</a>
+  <a data-view="review" class="active">Review Queue</a>
+  <a data-view="history">Request History</a>
+  <a data-view="analytics">Analytics</a>
+  <a data-view="settings">Settings</a>
 </nav>
 
 <main>
@@ -136,37 +144,103 @@
   </div>
 
   <h1>Meridian Operations</h1>
-  <p class="subtitle">Review and action AI-routed customer requests</p>
+  <p class="subtitle" id="pageSubtitle">Review and action AI-routed customer requests</p>
 
-  <div class="stats">
-    <div class="stat-card active">
-      <div class="stat-number" id="statPending">-</div>
-      <div class="stat-label">Pending Review</div>
+  <!-- Review Queue view -->
+  <div id="reviewView">
+    <div class="stats">
+      <div class="stat-card active">
+        <div class="stat-number" id="statPending">-</div>
+        <div class="stat-label">Pending Review</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statApproved">-</div>
+        <div class="stat-label">Approved Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statRejected">-</div>
+        <div class="stat-label">Rejected Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="statTotal">-</div>
+        <div class="stat-label">Total Requests</div>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-number" id="statApproved">-</div>
-      <div class="stat-label">Approved Today</div>
+
+    <div class="section-header">
+      <h2 id="pendingTitle">Pending Requests</h2>
     </div>
-    <div class="stat-card">
-      <div class="stat-number" id="statRejected">-</div>
-      <div class="stat-label">Rejected Today</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-number" id="statTotal">-</div>
-      <div class="stat-label">Total Requests</div>
-    </div>
+
+    <div id="requestList"></div>
+    <div id="empty" style="display:none;">No pending requests right now.</div>
   </div>
 
-  <div class="section-header">
-    <h2 id="pendingTitle">Pending Requests</h2>
+  <!-- Request History view -->
+  <div id="historyView" style="display:none;">
+    <table>
+      <thead>
+        <tr><th>Resolved</th><th>Customer</th><th>Message</th><th>Type</th><th>Status</th></tr>
+      </thead>
+      <tbody id="historyTableBody"></tbody>
+    </table>
+    <div id="historyEmpty" class="placeholder-box" style="display:none; margin-top: 14px;">No resolved requests yet.</div>
   </div>
 
-  <div id="requestList"></div>
-  <div id="empty" style="display:none;">No pending requests right now.</div>
+  <!-- Analytics view -->
+  <div id="analyticsView" style="display:none;">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="analyticsTotal">-</div>
+        <div class="stat-label">Total Resolved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="analyticsApprovalRate">-</div>
+        <div class="stat-label">Approval Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="analyticsRejectionRate">-</div>
+        <div class="stat-label">Rejection Rate</div>
+      </div>
+    </div>
+    <div class="section-header"><h2>Requests by Type</h2></div>
+    <table>
+      <thead><tr><th>Request Type</th><th>Count</th></tr></thead>
+      <tbody id="analyticsTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Settings view -->
+  <div id="settingsView" style="display:none;">
+    <div class="placeholder-box">This is a portfolio demo with a single hardcoded reviewer account, so there are no real settings to configure here.</div>
+  </div>
 </main>
 
 <script>
   const API_BASE = "http://16.61.183.194:8001";
+
+  const subtitles = {
+    review: "Review and action AI-routed customer requests",
+    history: "Every resolved request, approved or rejected",
+    analytics: "Request volume and approval breakdown",
+    settings: "Account and workspace settings",
+  };
+
+  function switchView(view) {
+    ["review", "history", "analytics", "settings"].forEach(v => {
+      document.getElementById(v + "View").style.display = v === view ? "block" : "none";
+    });
+    document.querySelectorAll("nav a").forEach(a => {
+      a.classList.toggle("active", a.dataset.view === view);
+    });
+    document.getElementById("pageSubtitle").textContent = subtitles[view];
+
+    if (view === "history") loadHistory();
+    if (view === "analytics") loadAnalytics();
+  }
+
+  document.querySelectorAll("nav a").forEach(a => {
+    a.onclick = () => switchView(a.dataset.view);
+  });
 
   function riskInfo(tier) {
     if (tier === "urgent_approval") return { label: "High Risk", cls: "high" };
@@ -178,7 +252,6 @@
     return d.toLocaleDateString() + ", " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
-  // Turns one real trace entry from the backend into a human-readable label.
   function traceEntryLabel(entry) {
     if (entry.node === "classify") {
       return `Classified as <strong>${entry.request_type}</strong> (${entry.risk_tier.replace("_", " ")})`;
@@ -248,8 +321,6 @@
     });
   }
 
-  // Lights up each trace entry one at a time, with a short pause between
-  // each, so the reviewer watches the real sequence of what happened.
   async function playTrace(container, trace) {
     container.style.display = "block";
     container.innerHTML = trace.map(entry => `
@@ -284,10 +355,55 @@
 
     card.querySelector(".trace-done").style.display = "block";
     loadStats();
-
-    // Give the reviewer a moment to see the completed state before the
-    // card leaves the pending list on the next refresh.
     setTimeout(loadPending, 1500);
+  }
+
+  async function loadHistory() {
+    const res = await fetch(`${API_BASE}/requests/history`);
+    const history = await res.json();
+    const body = document.getElementById("historyTableBody");
+    const empty = document.getElementById("historyEmpty");
+    body.innerHTML = "";
+
+    if (history.length === 0) {
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    history.forEach(req => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${formatTime(req.resolved_at)}</td>
+        <td>${req.customer_id}</td>
+        <td>${req.message}</td>
+        <td><span class="pill">${req.request_type}</span></td>
+        <td><span class="status-pill ${req.status}">${req.status}</span></td>
+      `;
+      body.appendChild(row);
+    });
+  }
+
+  async function loadAnalytics() {
+    const res = await fetch(`${API_BASE}/requests/history`);
+    const history = await res.json();
+
+    const total = history.length;
+    const approved = history.filter(r => r.status === "approved").length;
+    const rejected = history.filter(r => r.status === "rejected").length;
+
+    document.getElementById("analyticsTotal").textContent = total;
+    document.getElementById("analyticsApprovalRate").textContent = total ? `${Math.round((approved / total) * 100)}%` : "-";
+    document.getElementById("analyticsRejectionRate").textContent = total ? `${Math.round((rejected / total) * 100)}%` : "-";
+
+    const counts = {};
+    history.forEach(r => { counts[r.request_type] = (counts[r.request_type] || 0) + 1; });
+
+    const body = document.getElementById("analyticsTableBody");
+    body.innerHTML = Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([type, count]) => `<tr><td><span class="pill">${type}</span></td><td>${count}</td></tr>`)
+      .join("");
   }
 
   loadStats();
