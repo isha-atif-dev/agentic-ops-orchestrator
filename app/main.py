@@ -18,7 +18,8 @@ from app.tools.db import init_db
 from app.tools.request_log import log_new_request, resolve_request, get_pending_requests, get_stats
 from fastapi.middleware.cors import CORSMiddleware
 from app.tools.request_log import log_new_request, resolve_request, get_pending_requests, get_stats, get_request_history
-
+from fastapi.responses import FileResponse
+from pathlib import Path
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,7 +29,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Agentic Ops Orchestrator", lifespan=lifespan)
-
+FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
 app.add_middleware(
     CORSMiddleware,
@@ -110,3 +111,21 @@ def request_stats():
 def request_history():
     """Returns every resolved request, for the Request History tab."""
     return get_request_history()
+
+
+@app.get("/")
+def serve_landing_page():
+    """Landing page linking to the customer page and the ops dashboard."""
+    return FileResponse(FRONTEND_DIR / "index.html")
+
+
+@app.get("/customer")
+def serve_customer_page():
+    """Serves the customer-facing request page."""
+    return FileResponse(FRONTEND_DIR / "customer.html")
+
+
+@app.get("/dashboard")
+def serve_dashboard_page():
+    """Serves the internal ops approval dashboard."""
+    return FileResponse(FRONTEND_DIR / "dashboard.html")
