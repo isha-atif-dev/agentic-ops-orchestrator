@@ -1,14 +1,12 @@
 """
 Runs a real agentic tool-use loop.
 
-Unlike the earlier fixed-routing approach (taxonomy decides which
-tools run), this lets Claude itself decide which tool(s) to call
-based on the customer's message, see each tool's result, and decide
-whether another tool call is needed or whether it's done. The first
-turn forces a tool call (tool_choice="any"), so the agent can never
-simply respond with text and take no action at all, after that it's
-free to decide naturally when it's done. MAX_ITERATIONS exists purely
-as a safety cap against runaway loops, not as a normal stopping point.
+Claude decides which tool(s) to call based on the customer's
+message, sees each result, and decides whether another call is
+needed or whether it's done. Also builds a step-by-step trace of
+every decision made, used to power the node-graph replay
+visualization on the frontend, this is the exact real sequence of
+what happened, not a simplified summary.
 """
 
 import json
@@ -61,15 +59,17 @@ TOOL_REGISTRY = {
 
 def run_agent_loop(customer_id: str, message: str) -> dict:
     """
-    Lets Claude decide which tool(s) to call to handle a customer's
-    request, executes them, feeds results back, and repeats until
-    Claude decides it's done or MAX_ITERATIONS is hit.
+    Lets Claude decide which tool(s) to call, executes them, feeds
+    results back, and repeats until Claude decides it's done or
+    MAX_ITERATIONS is hit.
 
-    Returns every tool call made and its result.
+    Returns {"tool_result": {...}, "trace": [...]}, trace is the
+    ordered list of every decision and action taken.
     """
     messages = [{"role": "user", "content": message}]
     tool_calls_made = {}
     called_tools = set()
+    trace = []
 
     for i in range(MAX_ITERATIONS):
         tool_choice = {"type": "any"} if i == 0 else {"type": "auto"}
@@ -94,15 +94,20 @@ def run_agent_loop(customer_id: str, message: str) -> dict:
                 continue
 
             if block.name in called_tools:
-                # Already executed this tool for this request, don't repeat
-                # the real action (e.g. don't escalate to fraud twice),
-                # just tell the model it's already been done.
                 result = {"note": "already completed earlier in this request", **tool_calls_made[block.name]}
+                trace.append({"node": "agent_loop", "action": "skipped_duplicate", "tool": block.name})
             else:
                 tool_function = TOOL_REGISTRY[block.name]
                 result = tool_function(customer_id, **block.input)
                 tool_calls_made[block.name] = result
                 called_tools.add(block.name)
+                trace.append({
+                    "node": "agent_loop",
+                    "action": "tool_call",
+                    "tool": block.name,
+                    "input": block.input,
+                    "result": result,
+                })
 
             tool_result_blocks.append({
                 "type": "tool_result",
@@ -112,4 +117,4 @@ def run_agent_loop(customer_id: str, message: str) -> dict:
 
         messages.append({"role": "user", "content": tool_result_blocks})
 
-    return tool_calls_made
+    return {"tool_result": tool_calls_made, "trace": trace}

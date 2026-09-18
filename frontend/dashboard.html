@@ -7,7 +7,10 @@
   Ops dashboard for reviewing and approving/rejecting AI-routed
   customer requests. Fetches live data from the FastAPI backend
   (pending queue, stats) and calls the decision endpoint when a
-  reviewer approves or rejects a request.
+  reviewer approves or rejects a request. On approval, replays the
+  real step-by-step trace returned by the backend (classify, human
+  decision, each tool call) as an animated node sequence, so the
+  reviewer sees exactly what the agent actually did, not a summary.
 -->
 <style>
   * { box-sizing: border-box; }
@@ -86,6 +89,34 @@
   button.approve { background: #2563eb; color: white; }
   button.approve:hover { background: #1e4fc4; }
   #empty { text-align: center; color: #9ca0b0; padding: 40px; font-size: 14px; }
+
+  .trace-container {
+    margin-top: 14px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    display: none;
+  }
+  .trace-node {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+  }
+  .trace-node.lit { opacity: 1; }
+  .trace-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #cbd5e1; flex-shrink: 0; margin-top: 3px;
+    transition: background 0.3s ease;
+  }
+  .trace-node.lit .trace-dot { background: #2563eb; }
+  .trace-label { font-size: 13px; line-height: 1.4; }
+  .trace-label strong { color: #1a1a2e; }
+  .trace-done {
+    font-size: 13px; color: #1b6b3a; font-weight: 600; margin-top: 10px; display: none;
+  }
 </style>
 </head>
 <body>
@@ -147,6 +178,25 @@
     return d.toLocaleDateString() + ", " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
+  // Turns one real trace entry from the backend into a human-readable label.
+  function traceEntryLabel(entry) {
+    if (entry.node === "classify") {
+      return `Classified as <strong>${entry.request_type}</strong> (${entry.risk_tier.replace("_", " ")})`;
+    }
+    if (entry.node === "approval_gate") {
+      return entry.action === "auto_approved"
+        ? "Auto-approved, no human review needed"
+        : `Human reviewer <strong>${entry.approved ? "approved" : "rejected"}</strong> this request`;
+    }
+    if (entry.node === "agent_loop" && entry.action === "tool_call") {
+      return `Agent called <strong>${entry.tool}</strong>`;
+    }
+    if (entry.node === "agent_loop" && entry.action === "skipped_duplicate") {
+      return `Skipped duplicate call to <strong>${entry.tool}</strong> (already done)`;
+    }
+    return "Step completed";
+  }
+
   async function loadStats() {
     const res = await fetch(`${API_BASE}/requests/stats`);
     const data = await res.json();
@@ -175,6 +225,7 @@
       const risk = riskInfo(req.risk_tier);
       const card = document.createElement("div");
       card.className = `req-card ${risk.cls}`;
+      card.dataset.threadId = req.thread_id;
       card.innerHTML = `
         <div class="req-top">
           <div class="risk-tag"><span class="risk-dot ${risk.cls}"></span>${risk.label}</div>
@@ -188,21 +239,55 @@
           <button class="reject">Reject</button>
           <button class="approve">Approve</button>
         </div>
+        <div class="trace-container"></div>
+        <div class="trace-done">✓ Completed</div>
       `;
-      card.querySelector(".reject").onclick = () => decide(req.thread_id, false);
-      card.querySelector(".approve").onclick = () => decide(req.thread_id, true);
+      card.querySelector(".reject").onclick = () => decide(card, req.thread_id, false);
+      card.querySelector(".approve").onclick = () => decide(card, req.thread_id, true);
       list.appendChild(card);
     });
   }
 
-  async function decide(threadId, approved) {
-    await fetch(`${API_BASE}/requests/${threadId}/decision`, {
+  // Lights up each trace entry one at a time, with a short pause between
+  // each, so the reviewer watches the real sequence of what happened.
+  async function playTrace(container, trace) {
+    container.style.display = "block";
+    container.innerHTML = trace.map(entry => `
+      <div class="trace-node">
+        <div class="trace-dot"></div>
+        <div class="trace-label">${traceEntryLabel(entry)}</div>
+      </div>
+    `).join("");
+
+    const nodes = container.querySelectorAll(".trace-node");
+    for (const node of nodes) {
+      node.classList.add("lit");
+      await new Promise(r => setTimeout(r, 700));
+    }
+  }
+
+  async function decide(card, threadId, approved) {
+    const actions = card.querySelector(".actions");
+    actions.style.display = "none";
+
+    const res = await fetch(`${API_BASE}/requests/${threadId}/decision`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ approved }),
     });
-    loadPending();
+    const data = await res.json();
+
+    const traceContainer = card.querySelector(".trace-container");
+    if (data.trace && data.trace.length > 0) {
+      await playTrace(traceContainer, data.trace);
+    }
+
+    card.querySelector(".trace-done").style.display = "block";
     loadStats();
+
+    // Give the reviewer a moment to see the completed state before the
+    // card leaves the pending list on the next refresh.
+    setTimeout(loadPending, 1500);
   }
 
   loadStats();

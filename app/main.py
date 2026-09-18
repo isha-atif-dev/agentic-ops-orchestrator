@@ -66,7 +66,7 @@ def submit_request(payload: SubmitRequestIn):
             request_type, state.get("risk_tier"), state.get("tool_args", {}),
             ai_recommendation, status="pending",
         )
-        return SubmitRequestOut(thread_id=thread_id, status="pending_approval", pending_review=pending)
+        return SubmitRequestOut(thread_id=thread_id, status="pending_approval", pending_review=pending, trace=state.get("trace", []))
 
     log_new_request(
         thread_id, payload.customer_id, payload.message,
@@ -74,7 +74,7 @@ def submit_request(payload: SubmitRequestIn):
         ai_recommendation, status="approved",
     )
     resolve_request(thread_id, "approved")
-    return SubmitRequestOut(thread_id=thread_id, status="completed", result=state.get("tool_result"))
+    return SubmitRequestOut(thread_id=thread_id, status="completed", result=state.get("tool_result"), trace=state.get("trace", []))
 
 
 @app.post("/requests/{thread_id}/decision", response_model=DecisionOut)
@@ -88,7 +88,7 @@ def submit_decision(thread_id: str, payload: DecisionIn):
         raise HTTPException(status_code=500, detail="Approved but no tool result was produced.")
 
     resolve_request(thread_id, "approved" if payload.approved else "rejected")
-    return DecisionOut(thread_id=thread_id, status="completed", result=state.get("tool_result", {}))
+    return DecisionOut(thread_id=thread_id, status="completed", result=state.get("tool_result", {}), trace=state.get("trace", []))
 
 
 @app.get("/requests/pending")

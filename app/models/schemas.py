@@ -21,6 +21,7 @@ class SubmitRequestOut(BaseModel):
     status: str  # "completed" or "pending_approval"
     result: Optional[dict] = None
     pending_review: Optional[dict] = None
+    trace: Optional[list] = None
 
 
 class DecisionIn(BaseModel):
@@ -31,3 +32,4 @@ class DecisionOut(BaseModel):
     thread_id: str
     status: str  # "completed"
     result: dict
+    trace: Optional[list] = None
