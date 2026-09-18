@@ -3,13 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Meridian — Agentic Ops Orchestrator</title>
-<!--
-  Landing page linking to the two separate frontends: the
-  customer-facing request page and the internal Meridian ops
-  dashboard. Kept separate rather than linked from within the
-  customer page itself, since a real customer would never see a
-  link to staff tooling.
--->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -17,8 +10,9 @@
   :root {
     --navy: #0b1e3d;
     --blue: #1d4ed8;
+    --green: #15803d;
     --slate: #5b6478;
-    --panel: rgba(255, 255, 255, 0.72);
+    --panel: rgba(255, 255, 255, 0.86);
     --panel-border: rgba(11, 30, 61, 0.08);
   }
   * { box-sizing: border-box; }
@@ -31,131 +25,167 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 32px 20px;
   }
-  .panel {
+  .shell {
     width: 100%;
-    max-width: 620px;
+    max-width: 1040px;
     background: var(--panel);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--panel-border);
-    border-radius: 20px;
-    padding: 48px 44px;
-    text-align: center;
-    box-shadow: 0 20px 60px rgba(11, 30, 61, 0.08);
+    border-radius: 24px;
+    box-shadow: 0 24px 70px rgba(11, 30, 61, 0.10);
+    overflow: hidden;
   }
-  .mark {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: 15px;
-    color: var(--navy);
-    margin-bottom: 28px;
-  }
-  .mark svg { display: block; }
-  h1 {
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    font-size: 40px;
-    line-height: 1.1;
-    margin: 0 0 14px;
-    letter-spacing: -0.01em;
-  }
-  p.lede {
-    color: var(--slate);
-    font-size: 13px;
-    line-height: 1.6;
-    max-width: 440px;
-    margin: 0 auto 36px;
-  }
-  .choices {
-    display: flex;
-    gap: 14px;
-  }
-  a.choice {
-  position: relative;
-  overflow: hidden;
-  flex: 1;
-  text-decoration: none;
-  color: inherit;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--panel-border);
-  border-radius: 14px;
-  padding: 18px 16px 16px;
-  text-align: left;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-    a.choice::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--accent, var(--blue));
-    }
-  a.choice:hover, a.choice:focus-visible {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(11, 30, 61, 0.12);
-    outline: none;
-  }
-  a.choice .icon {
-  width: 26px; height: 26px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--accent, var(--blue)) 12%, white);
-  color: var(--accent, var(--blue));
-  margin-bottom: 10px;
-}
-  a.choice .title { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
-  a.choice .desc { font-size: 13px; color: var(--slate); line-height: 1.4; }
-  a.choice.staff { --accent: #0b1e3d; }
 
-  @media (max-width: 480px) {
-    .panel { padding: 36px 26px; }
-    h1 { font-size: 32px; }
-    .choices { flex-direction: column; }
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+  .mark { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+  nav .links { display: flex; gap: 28px; font-size: 14px; }
+  nav .links a { color: var(--slate); text-decoration: none; }
+  nav .links a:hover { color: var(--navy); }
+
+  .hero { text-align: center; padding: 56px 40px 40px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 1.5px; color: var(--slate);
+    text-transform: uppercase; margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 40px; line-height: 1.1; margin: 0 0 16px; letter-spacing: -0.01em;
+  }
+  h1 .accent { color: var(--blue); }
+  p.lede { color: var(--slate); font-size: 15.5px; line-height: 1.6; max-width: 480px; margin: 0 auto 36px; }
+
+  .choices { display: flex; gap: 16px; max-width: 640px; margin: 0 auto; text-align: left; }
+  .card {
+    flex: 1; position: relative; overflow: hidden;
+    background: rgba(255,255,255,0.9); border: 1px solid var(--panel-border);
+    border-radius: 14px; padding: 20px 20px 22px;
+  }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent, var(--blue)); }
+  .card.staff { --accent: var(--green); }
+  .card .icon {
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+    border-radius: 7px; background: color-mix(in srgb, var(--accent, var(--blue)) 12%, white);
+    color: var(--accent, var(--blue)); margin-bottom: 12px;
+  }
+  .card .title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .card .desc { font-size: 13px; color: var(--slate); line-height: 1.4; margin-bottom: 16px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    text-decoration: none; color: white; font-size: 13.5px; font-weight: 600;
+    padding: 9px 16px; border-radius: 8px; background: var(--accent, var(--blue));
+    transition: opacity 0.15s ease;
+  }
+  .btn:hover { opacity: 0.88; }
+
+  .features {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+    padding: 8px 40px 40px; border-top: 1px solid var(--panel-border);
+    margin-top: 12px; padding-top: 32px;
+  }
+  .feature { text-align: center; }
+  .feature .icon {
+    width: 34px; height: 34px; margin: 0 auto 10px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 9px; background: color-mix(in srgb, var(--blue) 10%, white); color: var(--blue);
+  }
+  .feature .title { font-weight: 600; font-size: 13.5px; margin-bottom: 4px; }
+  .feature .desc { font-size: 12.5px; color: var(--slate); line-height: 1.4; }
+
+  footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 40px; border-top: 1px solid var(--panel-border);
+    font-size: 12.5px; color: var(--slate);
   }
 
   @media (prefers-reduced-motion: no-preference) {
-  .mark, h1, p.lede, .choices {
-    opacity: 0;
-    animation: riseIn 0.6s ease forwards;
+    .eyebrow, h1, p.lede, .choices { opacity: 0; animation: riseIn 0.6s ease forwards; }
+    .eyebrow { animation-delay: 0s; }
+    h1 { animation-delay: 0.1s; }
+    p.lede { animation-delay: 0.2s; }
+    .choices { animation-delay: 0.32s; }
+    .features { opacity: 0; animation: riseIn 0.6s ease forwards; animation-delay: 0.45s; }
+    @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   }
-  .mark { animation-delay: 0s; }
-  h1 { animation-delay: 0.1s; }
-  p.lede { animation-delay: 0.2s; }
-  .choices { animation-delay: 0.32s; }
 
-  @keyframes riseIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+  @media (max-width: 720px) {
+    nav .links { display: none; }
+    .choices { flex-direction: column; }
+    .features { grid-template-columns: repeat(2, 1fr); }
+    h1 { font-size: 30px; }
+    footer { flex-direction: column; gap: 6px; text-align: center; }
   }
-}
 </style>
 </head>
 <body>
-  <div class="panel">
-    <div class="mark">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 1L18 6V14L10 19L2 14V6L10 1Z" stroke="#1d4ed8" stroke-width="1.6"/></svg>
-      Meridian
+  <div class="shell">
+    <nav>
+      <div class="mark">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 1L18 6V14L10 19L2 14V6L10 1Z" stroke="#1d4ed8" stroke-width="1.6"/></svg>
+        Meridian
+      </div>
+      <div class="links">
+        <a href="#features">How it works</a>
+        <a href="https://github.com/isha-atif-dev/agentic-ops-orchestrator" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <div class="eyebrow">Meridian Financial Services</div>
+      <h1>Agentic Ops <span class="accent">Orchestrator</span></h1>
+      <p class="lede">Customer requests come in as plain language. The system decides what to do next, and checks with a person before anything risky happens.</p>
+
+      <div class="choices">
+        <div class="card customer">
+          <div class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2"/></svg></div>
+          <div class="title">I'm a customer</div>
+          <div class="desc">Send us what's going on, in your own words.</div>
+          <a class="btn" href="/customer">Submit a request <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
+        <div class="card staff">
+          <div class="icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3L20 6V11C20 16 16.5 19.5 12 21C7.5 19.5 4 16 4 11V6L12 3Z" stroke="currentColor" stroke-width="2"/></svg></div>
+          <div class="title">Meridian staff</div>
+          <div class="desc">Review pending requests and take action.</div>
+          <a class="btn" href="/dashboard">View requests <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        </div>
+      </div>
     </div>
 
-    <h1>Agentic Ops Orchestrator</h1>
-    <p class="lede">Customer requests come in as plain language. The system decides what to do next, and checks with a person before anything risky happens.</p>
-
-    <div class="choices">
-      <a class="choice customer" href="/customer">
-        <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2"/></svg></div>
-        <div class="title">I'm a customer</div>
-        <div class="desc">Send us what's going on, in your own words.</div>
-      </a>
-      <a class="choice staff" href="/dashboard">
+    <div class="features" id="features">
+      <div class="feature">
         <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3L20 6V11C20 16 16.5 19.5 12 21C7.5 19.5 4 16 4 11V6L12 3Z" stroke="currentColor" stroke-width="2"/></svg></div>
-        <div class="title">Meridian staff</div>
-        <div class="desc">Review what the system wants to do before it happens.</div>
-      </a>
+        <div class="title">Responsible AI</div>
+        <div class="desc">Human approval required before any risky action runs.</div>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="6" cy="6" r="2.4" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="6" r="2.4" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="18" r="2.4" stroke="currentColor" stroke-width="1.8"/><path d="M8 7l6 9M16 7l-6 9" stroke="currentColor" stroke-width="1.6"/></svg></div>
+        <div class="title">Real Tool-Calling Agent</div>
+        <div class="desc">Claude decides which tools to call, not a fixed workflow.</div>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 19V13M12 19V8M19 19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="title">Evaluated, Not Assumed</div>
+        <div class="desc">100% pass rate across repeated evaluation runs.</div>
+      </div>
+      <div class="feature">
+        <div class="icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="2"/></svg></div>
+        <div class="title">Full Audit Trail</div>
+        <div class="desc">Every action logged for compliance and review.</div>
+      </div>
     </div>
+
+    <footer>
+      <span>Meridian | Agentic Ops Orchestrator</span>
+      <span>Smarter Operations. Safer Decisions.</span>
+    </footer>
   </div>
 </body>
 </html>
