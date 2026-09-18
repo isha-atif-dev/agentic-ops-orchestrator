@@ -19,14 +19,14 @@ A human normally has to read each one, work out what it actually is, decide what
 
 ```mermaid
 flowchart TD
-    A[Customer message] --> B[Classify intent<br/>Claude, structured output]
-    B --> C{Risk tier<br/>from taxonomy}
-    C -->|auto| D[Agent loop runs immediately]
-    C -->|needs_approval / urgent_approval| E[Pauses for human review]
+    A["Customer message"] --> B["Classify intent (Claude, structured output)"]
+    B --> C{"Risk tier from taxonomy"}
+    C -->|auto| D["Agent loop runs immediately"]
+    C -->|needs_approval or urgent_approval| E["Pauses for human review"]
     E -->|approved| D
-    E -->|rejected| F[No action taken]
-    D --> G[Claude decides which tool(s)<br/>to call, executes them,<br/>decides when it's done]
-    G --> H[Action taken + logged]
+    E -->|rejected| F["No action taken"]
+    D --> G["Claude decides which tools to call, executes them, decides when done"]
+    G --> H["Action taken and logged"]
 ```
 
 1. A request comes in through the API (or the customer-facing web page).
