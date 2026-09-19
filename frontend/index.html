@@ -12,8 +12,7 @@
     --blue: #1d4ed8;
     --green: #15803d;
     --slate: #5b6478;
-    --panel: rgba(255, 255, 255, 0.86);
-    --panel-border: rgba(11, 30, 61, 0.08);
+    --line: rgba(11, 30, 61, 0.08);
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -22,70 +21,67 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--navy);
     background: #eef2fb url('assets/landing-background.png') center center / cover no-repeat fixed;
+    min-height: 100vh;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 14px;
-  }
-  .shell {
-    width: 100%;
-    max-width: 1280px;
-    background: var(--panel);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--panel-border);
-    border-radius: 22px;
-    box-shadow: 0 24px 70px rgba(11, 30, 61, 0.10);
-    overflow: hidden;
+    flex-direction: column;
   }
 
   nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 36px;
-    border-bottom: 1px solid var(--panel-border);
+    padding: 22px 48px;
   }
   .mark { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
   nav .links { display: flex; gap: 24px; font-size: 13.5px; }
   nav .links a { color: var(--slate); text-decoration: none; }
   nav .links a:hover { color: var(--navy); }
 
-  .hero { text-align: center; padding: 24px 36px 22px; }
+  .hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px 24px;
+  }
   .eyebrow { font-size: 11.5px; letter-spacing: 1.5px; color: var(--slate); text-transform: uppercase; margin-bottom: 10px; }
-  h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 32px; line-height: 1.1; margin: 0 0 10px; letter-spacing: -0.01em; }
+  h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 36px; line-height: 1.1; margin: 0 0 12px; letter-spacing: -0.01em; }
   h1 .accent { color: var(--blue); }
-  p.lede { color: var(--slate); font-size: 14px; line-height: 1.55; max-width: 460px; margin: 0 auto 22px; }
+  p.lede { color: var(--slate); font-size: 14.5px; line-height: 1.6; max-width: 460px; margin: 0 auto 28px; }
 
-  .choices { display: flex; align-items: stretch; gap: 14px; max-width: 620px; margin: 0 auto; text-align: left; }
+  .choices { display: flex; align-items: stretch; gap: 16px; max-width: 620px; margin: 0 auto; text-align: left; }
   .card {
     flex: 1; position: relative; overflow: hidden;
     display: flex; flex-direction: column;
-    background: rgba(255,255,255,0.9); border: 1px solid var(--panel-border);
-    border-radius: 14px; padding: 13px 16px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px 20px;
+    box-shadow: 0 10px 30px rgba(11, 30, 61, 0.06);
   }
   .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent, var(--blue)); }
   .card.staff { --accent: var(--green); }
   .card .icon {
-    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
     border-radius: 7px; background: color-mix(in srgb, var(--accent, var(--blue)) 12%, white);
-    color: var(--accent, var(--blue)); margin-bottom: 10px;
+    color: var(--accent, var(--blue)); margin-bottom: 12px;
   }
-  .card .title { font-weight: 600; font-size: 14.5px; margin-bottom: 3px; }
-  .card .desc { font-size: 12.5px; color: var(--slate); line-height: 1.4; margin: 0 0 14px; }
+  .card .title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .card .desc { font-size: 13px; color: var(--slate); line-height: 1.45; margin: 0 0 16px; }
   .btn {
     margin-top: auto;
     align-self: flex-start;
     display: inline-flex; align-items: center; gap: 6px;
-    text-decoration: none; color: white; font-size: 13px; font-weight: 600;
-    padding: 8px 14px; border-radius: 8px; background: var(--accent, var(--blue));
+    text-decoration: none; color: white; font-size: 13.5px; font-weight: 600;
+    padding: 9px 16px; border-radius: 8px; background: var(--accent, var(--blue));
     transition: opacity 0.15s ease;
   }
   .btn:hover { opacity: 0.88; }
 
   footer {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 9px 36px; border-top: 1px solid var(--panel-border);
+    padding: 18px 48px;
     font-size: 11.5px; color: var(--slate);
   }
 
@@ -101,48 +97,46 @@
   @media (max-width: 720px) {
     nav .links { display: none; }
     .choices { flex-direction: column; }
-    h1 { font-size: 26px; }
+    h1 { font-size: 28px; }
     footer { flex-direction: column; gap: 4px; text-align: center; }
   }
 </style>
 </head>
 <body>
-  <div class="shell">
-    <nav>
-      <div class="mark">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 1L18 6V14L10 19L2 14V6L10 1Z" stroke="#1d4ed8" stroke-width="1.6"/></svg>
-        Meridian
-      </div>
-      <div class="links">
-        <a href="https://github.com/isha-atif-dev/agentic-ops-orchestrator" target="_blank" rel="noopener">GitHub</a>
-      </div>
-    </nav>
+  <nav>
+    <div class="mark">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 1L18 6V14L10 19L2 14V6L10 1Z" stroke="#1d4ed8" stroke-width="1.6"/></svg>
+      Meridian
+    </div>
+    <div class="links">
+      <a href="https://github.com/isha-atif-dev/agentic-ops-orchestrator" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </nav>
 
-    <div class="hero">
-      <div class="eyebrow">Meridian Financial Services</div>
-      <h1>Agentic Ops <span class="accent">Orchestrator</span></h1>
-      <p class="lede">Customer requests come in as plain language. The system decides what to do next, and checks with a person before anything risky happens.</p>
+  <div class="hero">
+    <div class="eyebrow">Meridian Financial Services</div>
+    <h1>Agentic Ops <span class="accent">Orchestrator</span></h1>
+    <p class="lede">Customer requests come in as plain language. The system decides what to do next, and checks with a person before anything risky happens.</p>
 
-      <div class="choices">
-        <div class="card customer">
-          <div class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2"/></svg></div>
-          <div class="title">I'm a customer</div>
-          <div class="desc">Send us what's going on, in your own words.</div>
-          <a class="btn" href="/customer">Submit a request <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        </div>
-        <div class="card staff">
-          <div class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L20 6V11C20 16 16.5 19.5 12 21C7.5 19.5 4 16 4 11V6L12 3Z" stroke="currentColor" stroke-width="2"/></svg></div>
-          <div class="title">Meridian staff</div>
-          <div class="desc">Review pending requests and take action.</div>
-          <a class="btn" href="/dashboard">View requests <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        </div>
+    <div class="choices">
+      <div class="card customer">
+        <div class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2"/></svg></div>
+        <div class="title">I'm a customer</div>
+        <div class="desc">Send us what's going on, in your own words.</div>
+        <a class="btn" href="/customer">Submit a request <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </div>
+      <div class="card staff">
+        <div class="icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3L20 6V11C20 16 16.5 19.5 12 21C7.5 19.5 4 16 4 11V6L12 3Z" stroke="currentColor" stroke-width="2"/></svg></div>
+        <div class="title">Meridian staff</div>
+        <div class="desc">Review pending requests and take action.</div>
+        <a class="btn" href="/dashboard">View requests <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       </div>
     </div>
-
-    <footer>
-      <span>Meridian | Agentic Ops Orchestrator</span>
-      <span>Smarter Operations. Safer Decisions.</span>
-    </footer>
   </div>
+
+  <footer>
+    <span>Meridian | Agentic Ops Orchestrator</span>
+    <span>Smarter Operations. Safer Decisions.</span>
+  </footer>
 </body>
 </html>
